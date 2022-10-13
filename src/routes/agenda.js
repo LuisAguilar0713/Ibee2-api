@@ -19,20 +19,6 @@ router.post('/api/agenda', async (req, res) => {
 			console.log(error)
 			res.status(500).json({ msg: 'error en el servidor' })
 		}
-	
 	})
 
-/*
-router.post('/api/agenda', (req,res)=> {
-
-    const nombre = req.body.nombre;
-    const nom_consultorio = req.body.nom_consultorio;
-    const color = req.body.color;
-    
-    db.query("INSERT INTO consultorio ( id_consultorio, nombre, color) VALUES (?,?,?)",[nombre,nom_consultorio,color], (err,result)=>{
-       if(err) {
-       console.log(err)
-       } 
-       console.log(result)
-    });   })*/
     module.exports = router

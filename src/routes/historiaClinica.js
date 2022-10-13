@@ -21,6 +21,25 @@ router.get('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
     })
 });
 
+router.get('/api/fichaDeIdentificacion2/:idPaciente', (req, res) => {
+
+    const { idPaciente } = req.params;
+
+    con.query(`SELECT * FROM paciente WHERE id_paciente='${idPaciente}';`, (error, results, fields) => {
+
+        if (error) { return res.status(500).json({ error }); }
+        const [paciente] = results;
+        if (!paciente) return res.status(400).json({ msg: 'no existe un paciente con ese id' });
+        //console.log(paciente.persona_id_persona);
+
+        con.query(`SELECT * FROM persona WHERE id_persona='${paciente.persona_id_persona}';`, (error, results, fields) =>{
+            if (error) { return res.status(500).json({ error }); }
+            res.json({ error, results });
+        })
+    })
+});
+
+
 router.put('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
 
     const { idPaciente } = req.params;
@@ -31,7 +50,7 @@ router.put('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
         const [paciente] = results;
         if (!paciente) return res.status(400).json({ msg: 'no existe un paciente con ese id' });
 
-        const { fecha, masculino, femenino, lugar_naci, f_nacimiento, ocupacion, escolaridad, estado_civil, num_inter, delegacion, nom_med_fam, tel_medico, fecha_cita, motivo } = req.body;
+        const { masculino, femenino, lugar_naci_estado, lugar_naci_ciudad, f_nacimiento, ocupacion, escolaridad, estado_civil, num_inter, delegacion, nom_med_fam, tel_medico, motivo } = req.body;
 
         con.query(`SELECT * FROM ficha_de_identificacion WHERE persona_id_persona='${paciente.persona_id_persona}';`, (error, results, fields) => {
             if (error) return res.status(500).json({ error });
@@ -41,11 +60,11 @@ router.put('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
             //return res.json({fichaDeIdentificacion});
 
             if (!fichaDeIdentificacion) {
-                con.query(`INSERT INTO ficha_de_identificacion(
-                    fecha,
+                con.query(`INSERT INTO ficha_de_identificacion( 
                     masculino,
                     femenino,
-                    lugar_naci,
+                    lugar_naci_estado,
+                    lugar_naci_ciudad,
                     f_nacimiento,
                     ocupacion,
                     escolaridad,
@@ -54,14 +73,13 @@ router.put('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
                     delegacion,
                     nom_med_fam,
                     tel_medico,
-                    fecha_cita,
                     motivo,
                     persona_id_persona
                 ) VALUES (
-                    '${fecha}',
                     '${masculino}',
                     '${femenino}',
-                    '${lugar_naci}',
+                    '${lugar_naci_estado}',
+                    '${lugar_naci_ciudad}',
                     '${f_nacimiento}',
                     '${ocupacion}',
                     '${escolaridad}',
@@ -70,7 +88,6 @@ router.put('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
                     '${delegacion}',
                     '${nom_med_fam}',
                     '${tel_medico}',
-                    '${fecha_cita}',
                     '${motivo}',
                     '${paciente.persona_id_persona}'
                 );`, (error, results, fields) => {
@@ -80,10 +97,10 @@ router.put('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
             }
 
             con.query(`UPDATE ficha_de_identificacion SET
-                fecha='${fecha}',
                 masculino='${masculino}',
                 femenino='${femenino}',
-                lugar_naci='${lugar_naci}',
+                lugar_naci_estado='${lugar_naci_estado}',
+                lugar_naci_ciudad='${lugar_naci_ciudad}',
                 f_nacimiento='${f_nacimiento}',
                 ocupacion='${ocupacion}',
                 escolaridad='${escolaridad}',
@@ -92,9 +109,8 @@ router.put('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
                 delegacion='${delegacion}',
                 nom_med_fam='${nom_med_fam}',
                 tel_medico='${tel_medico}',
-                fecha_cita='${fecha_cita}',
                 motivo='${motivo}'
-                WHERE id_ficha=${paciente.persona_id_persona}`, (error, results, fields) => {
+                WHERE persona_id_persona=${paciente.persona_id_persona}`, (error, results, fields) => {
                 if (error) return res.status(500).json({ error });
                 return res.json({ msg: 'actualizado correctamente', results });
             })
@@ -102,7 +118,7 @@ router.put('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
     })
 })
 
-router.get('/api/antecedentesPatologicos/:idPaciente', async (req, res) => {
+router.get('/api/antecedentesPatologicos/:idPaciente', async (req, res) => {    
     const { idPaciente } = req.params;
     try {
         const [antecedentesPatologicos] = await query(`SELECT * FROM antecedentes_patologicos WHERE paciente_id='${idPaciente}';`);

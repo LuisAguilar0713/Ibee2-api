@@ -26,15 +26,51 @@ router.get('/api/pacientes/:termino', (req, res) => {
 	)
 })
 
+router.post('/api/registrar', async (req, res) => {
+	const { id } = req.params
+
+	const {
+		nombre,
+		ap_paterno,
+		ap_materno,
+		correo,
+		password,
+	} = req.body
+
+	try {
+
+		const { insertId: correoId } = await query(
+			`INSERT INTO correo (correo) VALUES (?)`,
+			[correo]
+		)
+
+		const { insertId: personaId } = await query(
+			`INSERT INTO persona (id_correo,nombre, ap_paterno, ap_materno) VALUES (?,?,?,?)`,
+			[correoId, nombre, ap_paterno, ap_materno]
+		)
+
+		const {}= await query(
+			`INSERT INTO usuario (persona_id_persona,usuario,password) VALUES (?,?,?)`,
+			[personaId,correo,password]
+		)
+
+		res.json({ msg: 'creado correctamente' })
+	} catch (error) {
+		console.log(error)
+		res.status(500).json({ msg: 'error en el servidor' })
+	}
+})
+
 router.get('/api/paciente/:id', async (req, res) => {
 	const { id } = req.params
 	try {
-		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
-        FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
+		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*, C.*
+        FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF, correo C
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
         AND PE.foto_id_foto=FT.id_foto 
 		AND DF.direccion_id_direccion=D.id_direccion
+		AND DF.correo_id_correo=C.id_correo
 		AND PE.datos_fiscales_id_datos_fiscales=DF.id_datos_fiscales;`)
 
 		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
@@ -59,7 +95,7 @@ router.get('/api/paciente/:id', async (req, res) => {
 		paciente.telefono = telefono
 		paciente.tutor = tutor
 		paciente.df = df
-		res.json({ paciente })
+		res.json({ paciente, df })
 	} catch (error) {
 		console.log(error)
 	}
@@ -108,10 +144,15 @@ router.post('/api/paciente', async (req, res) => {
 			[estado2, ciudad2, colonia2, calle2, numero2, cp2]
 		)
 
+		const {insertId:correoID}= await query(
+			`INSERT INTO correo (correo) VALUES (?)`,
+			[correo]
+		)
+
 		//
 		const { insertId: datos_fiscalesID } = await query(
-			`INSERT INTO datos_fiscales (direccion_id_direccion, regimen_fiscal, nif, razon_social) VALUES (?,?,?,?)`,
-			[direccion2Id, regimen_fiscal, nif, razon_social]
+			`INSERT INTO datos_fiscales (direccion_id_direccion, correo_id_correo, regimen_fiscal, nif, razon_social) VALUES (?,?,?,?,?)`,
+			[direccion2Id, correoID, regimen_fiscal, nif, razon_social]
 		)
 
 		//
@@ -167,6 +208,9 @@ router.post('/api/paciente', async (req, res) => {
 	}
 })
 
+//
+
+//
 router.put('/api/paciente/:id', async (req, res) => {
 	const { id } = req.params
 
@@ -200,12 +244,14 @@ router.put('/api/paciente/:id', async (req, res) => {
 
 	try {
 
-		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
-        FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
+		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*, C.*
+        FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF, correo C
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
         AND PE.foto_id_foto=FT.id_foto 
-		AND D.id_direccion=DF.direccion_id_direccion;`)
+		AND DF.direccion_id_direccion=D.id_direccion
+		AND DF.correo_id_correo=C.id_correo
+		AND PE.datos_fiscales_id_datos_fiscales=DF.id_datos_fiscales;`)
 
 		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
         FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
@@ -217,7 +263,11 @@ router.put('/api/paciente/:id', async (req, res) => {
 		if (!paciente) {
 			return res.status(400).json({ msg: 'el paciente no existe' })
 		}
-
+/*
+		await query(`UPDATE correo SET
+            correo='${correo}',
+            WHERE id_correo='${df.correo_id_correo}';`)
+*/
 		await query(`UPDATE persona SET
             nombre='${nombre}',
             ap_paterno='${ap_paterno}',
@@ -234,21 +284,37 @@ router.put('/api/paciente/:id', async (req, res) => {
             cp='${cp}'
             WHERE id_direccion='${paciente.id_direccion}';`)
 
-			await query(`UPDATE direccion SET
+			const[dfDireccion] = await query(`SELECT * 
+            FROM paciente PA, persona PE, direccion D, datos_fiscales DF
+            WHERE PA.id_paciente = '${id}'
+            AND PA.persona_id_persona= PE.id_persona
+            AND PE.datos_fiscales_id_datos_fiscales= DF.id_datos_fiscales 
+            AND DF.direccion_id_direccion= D.id_direccion`)
+
+			if(dfDireccion){
+				await query (`UPDATE direccion SET
             estado='${estado2}',
-            ciudad='${ciudad2}',
+           	ciudad='${ciudad2}',
             colonia='${colonia2}',
-            calle='${calle2}',
+			calle='${calle2}',
             numero='${numero2}',
             cp='${cp2}'
-            WHERE id_direccion='${df.id_direccion}';`)
-/*
+                WHERE id_direccion='${dfDireccion.id_direccion}';`)
+			}
+
+			/*const[dfInfo] = await query(`SELECT * 
+            FROM paciente PA, persona PE, datos_fiscales DF
+            WHERE PA.id_paciente = '${id}'
+            AND PA.persona_id_persona= PE.id_persona
+            AND PE.datos_fiscales_id_datos_fiscales= DF.id_datos_fiscales`)
+
+			if(dfInfo){
 			await query(`UPDATE datos_fiscales SET
             regimen_fiscal='${regimen_fiscal}',
             nif='${nif}',
             razon_social='${razon_social}',
-            WHERE direccion_id_direccion='${.id_direccion}';`)
-			*/
+            WHERE id_datos_fiscales='${dfInfo.datos_fiscales_id_datos_fiscales}';`)
+			}*/
 
 		const [telefonoPaciente] = await query(`SELECT * 
             FROM paciente_has_telefono PHT, telefono T, tipo_telefono TT
