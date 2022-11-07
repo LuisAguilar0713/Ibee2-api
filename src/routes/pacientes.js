@@ -9,7 +9,7 @@ router.get('/api/pacientes/:termino', (req, res) => {
 	console.log(req.params)
 
 	con.query(
-		`select PA.*, PE.*, FT.* 
+		`select PA., PE., FT.* 
     from paciente PA, persona PE, foto FT 
     where PA.persona_id_persona=PE.id_persona 
     and PE.foto_id_foto=FT.id_foto 
@@ -64,7 +64,7 @@ router.post('/api/registrar', async (req, res) => {
 router.get('/api/paciente/:id', async (req, res) => {
 	const { id } = req.params
 	try {
-		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*, C.*
+		const [df] = await query(`SELECT PA., PE., FT.* , D., DF., C.*
         FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF, correo C
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
@@ -73,7 +73,7 @@ router.get('/api/paciente/:id', async (req, res) => {
 		AND DF.correo_id_correo=C.id_correo
 		AND PE.datos_fiscales_id_datos_fiscales=DF.id_datos_fiscales;`)
 
-		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
+		const [paciente] = await query(`SELECT PA., PE., FT.* , D., DF.
         FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
@@ -98,6 +98,30 @@ router.get('/api/paciente/:id', async (req, res) => {
 		res.json({ paciente, df })
 	} catch (error) {
 		console.log(error)
+	}
+})
+
+router.post('/api/productos', async (req, res) => {
+	const { id } = req.params
+
+	const {
+		producto,
+		descripcion,
+		precio,
+		cantidad,
+		proveedor
+	} = req.body
+
+	try {
+		const { } = await query(
+			`INSERT INTO productos (producto, descripcion,precio, cantidad, proveedor) VALUES (?,?,?,?,?)`,
+			[producto, descripcion, precio, cantidad, proveedor]
+		)
+
+		res.json({ msg: 'creado correctamente'})
+	} catch (error) {
+		console.log(error)
+		res.status(500).json({ msg: 'error en el servidor' })
 	}
 })
 
@@ -179,7 +203,7 @@ router.post('/api/paciente', async (req, res) => {
 		)
 
         // obtiene el paciente que acabamos de crear
-        const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*
+        const [paciente] = await query(`SELECT PA., PE., FT.* , D.*
         FROM paciente PA, persona PE, foto FT ,direccion D
         WHERE PA.id_paciente='${pacienteId}'
         AND PA.persona_id_persona=PE.id_persona 
@@ -244,7 +268,7 @@ router.put('/api/paciente/:id', async (req, res) => {
 
 	try {
 
-		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*, C.*
+		const [df] = await query(`SELECT PA., PE., FT.* , D., DF., C.*
         FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF, correo C
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
@@ -253,7 +277,7 @@ router.put('/api/paciente/:id', async (req, res) => {
 		AND DF.correo_id_correo=C.id_correo
 		AND PE.datos_fiscales_id_datos_fiscales=DF.id_datos_fiscales;`)
 
-		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
+		const [paciente] = await query(`SELECT PA., PE., FT.* , D., DF.
         FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
@@ -340,7 +364,7 @@ router.put('/api/paciente/:id', async (req, res) => {
 router.get('/api/pacienteParaPago/:id', async (req, res) => {
 	const { id } = req.params
 	try {
-		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*
+		const [paciente] = await query(`SELECT PA., PE., FT.* , D.*
         FROM paciente PA, persona PE, foto FT ,direccion D
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
