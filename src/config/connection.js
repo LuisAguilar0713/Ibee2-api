@@ -26,7 +26,7 @@ const con = mysql.createConnection({
 const con = mysql.createConnection({
   host     : 'localhost',
   user     : 'root',
-  password : '',
+  password : '12345',
   database : 'ibee_actualizada_nueva_2'
 });
 
