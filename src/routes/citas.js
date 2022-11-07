@@ -7,6 +7,7 @@ const {startOfWeek, endOfISOWeek, startOfDay, endOfWeek, startOfMonth, endOfMont
 router.get('/api/citas', async(req,res)=>{
     const {fromDate,consultorio, range} = req.query; 
     let start, end;
+    
 
     console.log({fromDate,consultorio, range});
     
@@ -68,7 +69,7 @@ router.get('/api/citas/n',(req,res)=>{
                 });
             })
         })
-    } catch (error) {
+    }   catch (error) {
         res.json({error})
         console.log(error);
     }
@@ -80,6 +81,7 @@ router.get('/api/citas/:id',(req,res)=>{
     con.query(`SELECT * FROM citas 
         WHERE id_citas='${id}';`,function (error, results, fields) {
         if(error) return res.status(500).json({error});
+        
         res.json({results});
     });
 });

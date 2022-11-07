@@ -9,14 +9,18 @@ const con = mysql.createConnection({
   password : 'ZjxbAAAvCdvRz3fFUVEY',
   database : 'bklb0otatxag0a1qv5gj'
 });
+}); */
+
 /*
 // clever cloud new
 const con = mysql.createConnection({
-  host     : 'b0ymg7ua1hzq53hzf52c-mysql.services.clever-cloud.com',
-  user     : 'ugtrmbw8hgpsiqhj',
-  password : '8NBPg9sn3NRPpR0kveLy',
-  database : 'b0ymg7ua1hzq53hzf52c'
-}); */
+  host     : 'baeq4ipjypvzoxky1bbz-mysql.services.clever-cloud.com',
+  user     : 'uoch1ell0gacxuot',
+  password : 'SRl9jfbaWX98qsq0WyLE',
+  database : 'baeq4ipjypvzoxky1bbz'
+});
+*/
+
 // local
 
 const con = mysql.createConnection({
@@ -25,6 +29,7 @@ const con = mysql.createConnection({
   password : '',
   database : 'ibee_actualizada_nueva_2'
 });
+
 
 
 module.exports ={

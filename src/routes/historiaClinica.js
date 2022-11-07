@@ -21,7 +21,7 @@ router.get('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
     })
 });
 
-router.get('/api/fichaDeIdentificacion2/:idPaciente', (req, res) => {
+router.get('/api/fichaDeIdentificacion2/:idPaciente', (req, res) =>                                                                                                                                                     {
 
     const { idPaciente } = req.params;
 
@@ -40,10 +40,12 @@ router.get('/api/fichaDeIdentificacion2/:idPaciente', (req, res) => {
 });
 
 
+
+
 router.put('/api/fichaDeIdentificacion/:idPaciente', (req, res) => {
 
     const { idPaciente } = req.params;
-
+ 
     con.query(`SELECT * FROM paciente WHERE id_paciente='${idPaciente}';`, (error, results, fields) => {
 
         if (error) return res.status(500).json({ error });
