@@ -26,6 +26,25 @@ router.get('/api/pacientes/:termino', (req, res) => {
 	)
 })
 
+router.get('/api/ordenes', (req, res) => {
+
+	console.log(req.params)
+
+	con.query(
+		`select OT., IU.
+    from orden_trabajo OT, indicador_unidades_orden IU
+    where OT.indicador_unidades_id=IU.id_unidades`,
+		function (error, results, fields) {
+			if (error) {
+				return res.status(500).json({ error })
+			}
+			res.json({
+				results,
+			})
+		}
+	)
+})
+
 router.post('/api/registrar', async (req, res) => {
 	const { id } = req.params
 
@@ -116,6 +135,56 @@ router.post('/api/productos', async (req, res) => {
 		const { } = await query(
 			`INSERT INTO productos (producto, descripcion,precio, cantidad, proveedor) VALUES (?,?,?,?,?)`,
 			[producto, descripcion, precio, cantidad, proveedor]
+		)
+
+		res.json({ msg: 'creado correctamente'})
+	} catch (error) {
+		console.log(error)
+		res.status(500).json({ msg: 'error en el servidor' })
+	}
+})
+
+router.post('/api/orden', async (req, res) => {
+	const { id } = req.params
+
+	const {
+		u11,u12,u13,u14,u15,u16,u17,
+		u21,u22,u23,u24,u25,u26,u27,
+		u31,u32,u33,u34,u35,u36,u37, 
+		u41,u42,u43,u44,u45,u46,u47,
+		doctor,
+		fecha,
+		paciente,
+		edad,
+		tipo_trabajo,
+		vita,
+		chromascop,
+		otros,
+		mamelones,
+		translucidez,
+		textura,
+		brillo,
+		yeso,
+		oclusal,
+		antagonista,
+		foto,
+		articulador,
+		coronas,
+		implante,
+		cucharillas,
+		notas
+	} = req.body
+
+	try {
+		const { insertId: id_unidades} = await query(
+			
+			`INSERT INTO indicador_unidades_orden (u11, u12, u13, u14, u15, u16, u17, u21, u22, u23, u24, u25, u26, u27, u31, u32, u33, u34, u35, u36, u37, u41, u42, u43, u44, u45, u46, u47) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+			[ u11, u12, u13, u14, u15, u16, u17, u21, u22, u23, u24, u25, u26, u27, u31, u32, u33, u34, u35, u36, u37, u41, u42, u43, u44, u45, u46, u47]
+		)
+
+		const { } = await query(
+		`INSERT INTO orden_trabajo (indicador_unidades_id, doctor, fecha,paciente, edad, tipo_trabajo,vita, chromascop,otros, mamelones, translucidez, textura, brillo, yeso,oclusal,antagonista,foto,articulador, coronas,implante,cucharillas,notas) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+			[id_unidades, doctor, fecha, paciente, edad, tipo_trabajo, vita, chromascop,otros, mamelones, translucidez, textura, brillo,yeso,oclusal,antagonista,foto,articulador,coronas,implante,cucharillas,notas]
 		)
 
 		res.json({ msg: 'creado correctamente'})
@@ -360,6 +429,24 @@ router.put('/api/paciente/:id', async (req, res) => {
 		res.status(500).json({ msg: 'error en el servidor' })
 	}
 })
+
+router.post('/api/agenda', async (req, res) => {
+	const { id } = req.params	
+    
+    const { nom_consultorio	} = req.body
+
+	try {
+
+		//
+		const {} = await query(
+			`INSERT INTO consultorio (nombre) VALUES (?)`,
+			[nom_consultorio]
+		)
+		}catch (error) {
+			console.log(error)
+			res.status(500).json({ msg: 'error en el servidor' })
+		}
+	})
 
 router.get('/api/pacienteParaPago/:id', async (req, res) => {
 	const { id } = req.params
