@@ -9,7 +9,7 @@ router.get('/api/pacientes/:termino', (req, res) => {
 	console.log(req.params)
 
 	con.query(
-		`select PA., PE., FT.* 
+		`select PA.*, PE.*, FT.* 
     from paciente PA, persona PE, foto FT 
     where PA.persona_id_persona=PE.id_persona 
     and PE.foto_id_foto=FT.id_foto 
@@ -83,7 +83,7 @@ router.post('/api/registrar', async (req, res) => {
 router.get('/api/paciente/:id', async (req, res) => {
 	const { id } = req.params
 	try {
-		const [df] = await query(`SELECT PA., PE., FT.* , D., DF., C.*
+		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*, C.*
         FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF, correo C
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
@@ -92,7 +92,7 @@ router.get('/api/paciente/:id', async (req, res) => {
 		AND DF.correo_id_correo=C.id_correo
 		AND PE.datos_fiscales_id_datos_fiscales=DF.id_datos_fiscales;`)
 
-		const [paciente] = await query(`SELECT PA., PE., FT.* , D., DF.
+		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*
         FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
@@ -115,6 +115,24 @@ router.get('/api/paciente/:id', async (req, res) => {
 		paciente.tutor = tutor
 		paciente.df = df
 		res.json({ paciente, df })
+	} catch (error) {
+		console.log(error)
+	}
+})
+router.get('/api/cita', async (req, res) => {
+	const { id } = req.params
+	try {
+		
+		const [totalCitas] = await query(`SELECT CT.*
+        FROM citas CT
+        WHERE PA.id_paciente='${id}'
+        AND PA.persona_id_persona=PE.id_persona 
+        AND PE.foto_id_foto=FT.id_foto 
+        AND PE.direccion_id_direccion=D.id_direccion;`)
+
+
+		cita.totalCitas=tCitas
+		res.json({ tCitas })
 	} catch (error) {
 		console.log(error)
 	}
@@ -149,7 +167,7 @@ router.post('/api/orden', async (req, res) => {
 
 	const {
 		u11,u12,u13,u14,u15,u16,u17,
-		u21,u22,u23,u24,u25,u26,u27,
+		u21,u22,u23,u24,u25,u26,u27, 
 		u31,u32,u33,u34,u35,u36,u37, 
 		u41,u42,u43,u44,u45,u46,u47,
 		doctor,
@@ -194,6 +212,47 @@ router.post('/api/orden', async (req, res) => {
 	}
 })
 
+router.post('/api/tratamiento/:id', async (req, res) => {
+	const { id } = req.params
+
+	const {
+		
+		fecha,
+		descripcion,
+		nombre_doctor,
+	} = req.body
+	try {
+		const {} = await query(
+			
+			`INSERT INTO tratamiento (id_paciente,fecha,descripcion,nombre_doctor) VALUES (?,?,?,?)`,
+			[id,fecha,descripcion,nombre_doctor]
+		)
+		res.json({ msg: 'creado correctamente'})
+	} catch (error) {
+		console.log(error)
+		res.status(500).json({ msg: 'error en el servidor' })
+	}
+})
+router.post('/api/estudio', async (req, res) => {
+	const { id } = req.params
+
+	const {
+		fecha,
+		tipo_estudio,
+		
+	} = req.body
+	try {
+		const {} = await query(
+			
+			`INSERT INTO estudios (fecha,tipo_estudio) VALUES (?,?)`,
+			[ fecha,tipo_estudio]
+		)
+		res.json({ msg: 'creado correctamente'})
+	} catch (error) {
+		console.log(error)
+		res.status(500).json({ msg: 'error en el servidor' })
+	}
+})
 router.post('/api/paciente', async (req, res) => {
 	const { id } = req.params
 
@@ -272,7 +331,7 @@ router.post('/api/paciente', async (req, res) => {
 		)
 
         // obtiene el paciente que acabamos de crear
-        const [paciente] = await query(`SELECT PA., PE., FT.* , D.*
+        const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*
         FROM paciente PA, persona PE, foto FT ,direccion D
         WHERE PA.id_paciente='${pacienteId}'
         AND PA.persona_id_persona=PE.id_persona 
@@ -337,7 +396,7 @@ router.put('/api/paciente/:id', async (req, res) => {
 
 	try {
 
-		const [df] = await query(`SELECT PA., PE., FT.* , D., DF., C.*
+		const [df] = await query(`SELECT PA.*, PE.*, FT.* , D.*, DF.*, C.*
         FROM paciente PA, persona PE, foto FT ,direccion D, datos_fiscales DF, correo C
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 
@@ -451,7 +510,7 @@ router.post('/api/agenda', async (req, res) => {
 router.get('/api/pacienteParaPago/:id', async (req, res) => {
 	const { id } = req.params
 	try {
-		const [paciente] = await query(`SELECT PA., PE., FT.* , D.*
+		const [paciente] = await query(`SELECT PA.*, PE.*, FT.* , D.*
         FROM paciente PA, persona PE, foto FT ,direccion D
         WHERE PA.id_paciente='${id}'
         AND PA.persona_id_persona=PE.id_persona 

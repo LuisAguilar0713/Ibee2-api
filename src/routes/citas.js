@@ -127,6 +127,7 @@ router.post('/api/citas',async(req,res)=>{
     }
 });
 
+
 router.put('/api/citas',async(req,res)=>{
     const {id,fecha_inicio,fecha_fin,hora_inicio,hora_fin,Consultorio,medico, asunto} = req.body;
     try {
